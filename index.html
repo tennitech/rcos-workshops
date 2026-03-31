@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <title>Agent Boss Presentation</title>
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  
+
   <script type="importmap">
     {
       "imports": {
@@ -18,8 +20,18 @@
       }
     }
   </script>
-  
+
   <style>
+    @font-face {
+      font-family: 'GeistPixelSquare';
+      src: url('fonts/GeistPixel-Square.otf') format('opentype');
+    }
+
+    @font-face {
+      font-family: 'GeistPixelLine';
+      src: url('fonts/GeistPixel-Line.otf') format('opentype');
+    }
+
     /* Base Reset & Styles */
     * {
       margin: 0;
@@ -51,42 +63,239 @@
       opacity: 0 !important;
     }
 
-    .text-block {
-      margin: 24px;
-      margin-top: 20vh;
-      max-width: 75%;
-      text-align: center;
+    .hero {
       position: absolute;
-      z-index: 10;
-      text-wrap: balance;
-      font-size: clamp(28px, 4vw, 64px);
-      line-height: 1.3;
-      font-weight: 500;
-      letter-spacing: -0.015em;
+      inset: 0;
+      z-index: 12;
+      padding: clamp(28px, 4vw, 48px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
     }
 
-    .word_wrap {
+    .prompt-panel {
+      width: min(680px, 88vw);
+      margin: 0 auto;
+      padding-top: clamp(36px, 10vh, 120px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 22px;
+      pointer-events: auto;
+    }
+
+    .conversation-lane {
+      min-height: 190px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: flex-end;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .conversation-item {
+      max-width: min(560px, 78vw);
+      width: fit-content;
+      padding: 14px 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(170, 224, 255, 0.14);
+      background:
+        linear-gradient(180deg, rgba(10, 24, 40, 0.66), rgba(4, 13, 24, 0.5)),
+        radial-gradient(circle at top, rgba(180, 236, 255, 0.14), transparent 62%);
+      box-shadow: 0 18px 56px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(224, 244, 255, 0.9);
+      font-family: 'DM Sans', 'Inter', sans-serif;
+      font-weight: 300;
+      letter-spacing: -0.04em;
+      will-change: transform, opacity, filter;
+    }
+
+    .conversation-item.user {
+      color: rgba(236, 249, 255, 0.96);
+    }
+
+    .conversation-item.status {
+      color: rgba(168, 190, 205, 0.54);
+      background:
+        linear-gradient(180deg, rgba(22, 28, 34, 0.72), rgba(11, 16, 22, 0.62)),
+        radial-gradient(circle at top, rgba(156, 176, 190, 0.08), transparent 64%);
+      border-color: rgba(153, 176, 192, 0.12);
+    }
+
+    .conversation-item.assistant {
+      color: rgba(241, 252, 255, 0.98);
+      text-shadow: 0 0 22px rgba(191, 247, 255, 0.12);
+    }
+
+    .conversation-dots {
+      display: inline-flex;
+      gap: 6px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    .conversation-dots span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(210, 230, 240, 0.86);
+      animation: promptDot 1.1s infinite ease-in-out;
+    }
+
+    .conversation-dots span:nth-child(2) {
+      animation-delay: 0.14s;
+    }
+
+    .conversation-dots span:nth-child(3) {
+      animation-delay: 0.28s;
+    }
+
+    .composer-shell {
       position: relative;
-      display: inline-block;
+      overflow: visible;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: min(500px, 72vw);
+      padding: 16px 16px 16px 24px;
+      border-radius: 26px;
+      border: 1px solid rgba(186, 236, 255, 0.16);
+      background:
+        linear-gradient(180deg, rgba(75, 97, 117, 0.2), rgba(36, 52, 67, 0.24)),
+        linear-gradient(180deg, rgba(15, 30, 44, 0.78), rgba(10, 20, 31, 0.68));
+      box-shadow: 0 22px 64px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(225, 249, 255, 0.04) inset;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      margin-inline: auto;
     }
 
-    .word_wrap::before {
-      content: attr(data-word);
-      visibility: hidden;
+    .composer-shell > * {
+      position: relative;
+      z-index: 3;
     }
 
-    .word {
+    .composer-shell.is-focus-glow {
+      animation: composerEdgeFlash 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+    }
+
+    .composer-input {
+      flex: 1;
+      min-height: 30px;
+      max-height: 96px;
+      border: 0;
+      resize: none;
+      background: transparent;
+      color: rgba(239, 252, 255, 0.96);
+      font-size: clamp(16px, 1.9vw, 21px);
+      line-height: 1.22;
+      padding: 4px 2px 4px 0;
+      outline: none;
+      font-family: 'DM Sans', 'Inter', sans-serif;
+      font-weight: 300;
+      letter-spacing: -0.04em;
+      caret-color: #ffffff;
+      text-shadow:
+        0 0 12px rgba(143, 232, 255, 0.16),
+        0 0 28px rgba(143, 232, 255, 0.08);
+    }
+
+    .composer-input::placeholder {
+      color: rgba(214, 233, 244, 0.68);
+    }
+
+    .composer-input:focus {
+      text-shadow:
+        0 0 16px rgba(190, 246, 255, 0.28),
+        0 0 36px rgba(143, 232, 255, 0.18);
+    }
+
+    .composer-submit {
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid rgba(189, 241, 255, 0.2);
+      background: linear-gradient(180deg, rgba(229, 251, 255, 0.96), rgba(166, 232, 255, 0.94));
+      color: #03131d;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 30px rgba(126, 220, 255, 0.24);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .composer-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 34px rgba(126, 220, 255, 0.28);
+    }
+
+    .composer-submit:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+    }
+
+    .composer-submit-arrow {
+      font-size: 17px;
+      line-height: 1;
+      transform: translateY(-1px);
+    }
+
+    .scene-grid {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      color: #696969;
-      opacity: 0;
-      will-change: filter, opacity, transform;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.52)),
+        linear-gradient(90deg, rgba(135, 195, 235, 0.05) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(135, 195, 235, 0.04) 1px, transparent 1px);
+      background-size: auto, 72px 72px, 72px 72px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.26), transparent 72%);
     }
 
-    .word.emphasized {
-      color: #fff;
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+
+    @keyframes promptDot {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.34; }
+      40% { transform: translateY(-3px); opacity: 1; }
+    }
+
+    @keyframes composerEdgeFlash {
+      0% {
+        border-color: rgba(186, 236, 255, 0.16);
+        box-shadow:
+          0 22px 64px rgba(0, 0, 0, 0.28),
+          0 0 0 1px rgba(225, 249, 255, 0.04) inset,
+          0 0 0 rgba(143, 232, 255, 0);
+      }
+      36% {
+        border-color: rgba(233, 252, 255, 0.98);
+        box-shadow:
+          0 22px 64px rgba(0, 0, 0, 0.28),
+          0 0 0 1px rgba(225, 249, 255, 0.14) inset,
+          0 0 14px rgba(143, 232, 255, 0.82),
+          0 0 28px rgba(143, 232, 255, 0.44),
+          0 0 46px rgba(143, 232, 255, 0.22);
+      }
+      100% {
+        border-color: rgba(186, 236, 255, 0.16);
+        box-shadow:
+          0 22px 64px rgba(0, 0, 0, 0.28),
+          0 0 0 1px rgba(225, 249, 255, 0.04) inset,
+          0 0 0 rgba(143, 232, 255, 0);
+      }
     }
 
     #waveCanvas {
@@ -116,7 +325,8 @@
       bottom: 16px;
       right: 24px;
       z-index: 10000;
-      font-size: 10px;
+      font-family: 'GeistPixelLine', 'Inter', sans-serif;
+      font-size: 8.5px;
       color: rgba(255, 255, 255, 0.3);
       display: flex;
       align-items: center;
@@ -124,8 +334,9 @@
       pointer-events: none;
       letter-spacing: 0.5px;
     }
+
     #footer img {
-      height: 12px;
+      height: 10px;
       filter: brightness(0) invert(1);
       opacity: 0.6;
     }
@@ -138,7 +349,24 @@
   </div>
 
   <div id="scene1" class="scene">
+    <div class="scene-grid"></div>
     <div id="waveCanvas"></div>
+    <div class="hero">
+      <div class="prompt-panel">
+        <div class="conversation-lane" id="conversationLane"></div>
+        <form id="composerForm" class="composer-shell">
+          <textarea
+            id="composerInput"
+            class="composer-input"
+            rows="1"
+            placeholder="What do you want to do?"
+          ></textarea>
+          <button type="submit" class="composer-submit" aria-label="Submit prompt">
+            <span class="composer-submit-arrow">↑</span>
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script type="module">
@@ -202,15 +430,36 @@
       return pass;
     }
 
-    // --- Scene Text Content ---
-    const sceneTexts = [
-      "Welcome to *RCOS* *Spring* *2026* *Workshops!* Today we discuss: *Become* *a* *Boss* *(for* *Agents)*",
-      "Learn how to *orchestrate* a team of *AI* *agents* to plan, code, and ship software at *breakneck* *speed.*",
-      "AI is moving fast, but the real question isn't if you should use it, it's *how* *to* *use* *it* *effectively.* This workshop breaks down how *large* *language* *models* can amplify your design and development process *without* giving up control.",
-      "We'll explore how to architect systems that use AI agents *deliberately:* defining *roles,* *constraints,* using codebase *context,* and *guardrails* so outputs stay grounded in your codebase and aligned with your goals.",
-      "You’ll learn to be the *Agent* *Boss* by setting strategy, designing workflows, enforcing safeguards, and *orchestrating* *multiple* *agents* toward clear outcomes to increase *shipping* *velocity* and maintain *quality.*",
-      "Join me on *March* *27,* *2026* from 5:50 PM to 7:00 PM in *Carnegie* *205*. Bring your laptop and let's build the future of *agent-driven* *development.*"
-    ];
+    const signalModes = {
+      idle: {
+        kicker: "Signal Idle",
+        title: "Ready for input",
+        subtitle: "Submit a prompt to simulate processing, thinking, completion, and return-to-idle states.",
+        meta: "No active request",
+        dots: false
+      },
+      processing: {
+        kicker: "Request Processing",
+        title: "Processing request",
+        subtitle: "A visible packet moves through the field as the request is routed and dispatched.",
+        meta: "Stage 1 of 3",
+        dots: true
+      },
+      flowing: {
+        kicker: "Model Thinking",
+        title: "Thinking",
+        subtitle: "Internal reasoning intensifies while the waveform accelerates and tightens.",
+        meta: "Stage 2 of 3",
+        dots: true
+      },
+      settled: {
+        kicker: "Response Complete",
+        title: "Completed",
+        subtitle: "The field spikes, resolves, and eases back into idle drift.",
+        meta: "Stage 3 of 3",
+        dots: false
+      }
+    };
 
 
     // --- Wave State & Keyframes ---
@@ -253,9 +502,36 @@
       { time: 55, gain: 8, frequency: 0, waveLength: 0.5 }
     ];
 
-    // --- Mouse & Glow Config ---
+    // --- Mouse, Glow & Flow Config ---
     const mouse = { x: 0, y: 0, active: false };
     let proxyMouseX = 0, proxyMouseY = 0, proxyInitialized = false;
+    const flowState = { pos: -0.22, width: 0.18, boost: 0.06, amp: 0.02, alpha: 0.1, drift: 0.014 };
+    const lightingState = { baseEmissive: 0.13 };
+    const visualState = { coverage: 0.22 };
+
+    const motionPresets = {
+      idle: {
+        wave1: { gain: 28, frequency: 0.18, waveLength: 1.1 },
+        wave2: { gain: 18, frequency: 0.12, waveLength: 0.84 },
+        flow: { width: 0.18, boost: 0.06, amp: 0.02, alpha: 0.1, drift: 0.014 },
+        light: 0.13,
+        coverage: 0.22
+      },
+      processing: {
+        wave1: { gain: 58, frequency: 1.02, waveLength: 0.78 },
+        wave2: { gain: 42, frequency: 0.72, waveLength: 1.02 },
+        flow: { width: 0.075, boost: 0.52, amp: 0.18, alpha: 0.44, drift: 0.36 },
+        light: 0.165,
+        coverage: 0.28
+      },
+      thinking: {
+        wave1: { gain: 116, frequency: 1.86, waveLength: 2.18 },
+        wave2: { gain: 94, frequency: 1.48, waveLength: 1.72 },
+        flow: { width: 0.14, boost: 0.18, amp: 0.09, alpha: 0.18, drift: 0.05 },
+        light: 0.165,
+        coverage: 0.39
+      }
+    };
 
     const glowConfig = { maxGlowDistance: 690, speedScale: 0.52, fadeSpeed: 4.4, glowFalloff: 0.6, mouseSmoothing: 30.0 };
     const glowDynamics = { accumulation: 1.2, decay: 3.3, max: 40.0, accumEase: 1.5, speedEase: 8.5 };
@@ -371,9 +647,8 @@
     }
 
     function createInstancedMaterial() {
-      // Kept the red!
-      const baseCol = new THREE.Color("#D6001C");
-      const emisCol = new THREE.Color("#D6001C");
+      const baseCol = new THREE.Color("#9FDBFF");
+      const emisCol = new THREE.Color("#E6FDFF");
 
       return new THREE.ShaderMaterial({
         defines: { USE_INSTANCING: '' },
@@ -395,8 +670,13 @@
           uMinBottomWidthPx: { value: 0 },
           uColor: { value: baseCol },
           uEmissive: { value: emisCol },
-          uBaseEmissive: { value: 0.05 },
-          uRotationAngle: { value: THREE.MathUtils.degToRad(23.4) }
+          uBaseEmissive: { value: lightingState.baseEmissive },
+          uRotationAngle: { value: 0.0 },
+          uFlowPos: { value: flowState.pos },
+          uFlowWidth: { value: flowState.width },
+          uFlowBoost: { value: flowState.boost },
+          uFlowAmp: { value: flowState.amp },
+          uFlowAlpha: { value: flowState.alpha }
         },
         vertexShader: `
           attribute float aXPos, aPosNorm, aGroup, aGlow;
@@ -404,8 +684,8 @@
           uniform float uGainMul, uBaseY;
           uniform float w1Gain, w1Len, w1Phase;
           uniform float w2Gain, w2Len, w2Phase;
-          uniform float uRotationAngle;
-          varying float vGlow, vPulse, vHeight;
+          uniform float uRotationAngle, uFlowPos, uFlowWidth, uFlowBoost, uFlowAmp;
+          varying float vGlow, vPulse, vHeight, vFlow;
           varying vec2 vUv;
 
           float sineH(float g, float len, float ph, float t){
@@ -417,6 +697,11 @@
             float h1 = sineH(w1Gain, w1Len, w1Phase, aPosNorm);
             float h2 = sineH(w2Gain, w2Len, w2Phase, aPosNorm);
             vHeight = mix(h1, h2, aGroup);
+            float flowSpread = max(uFlowWidth, 0.001);
+            float flowDelta = (aPosNorm - uFlowPos) / flowSpread;
+            float flowEnvelope = exp(-flowDelta * flowDelta * 2.8) * uFlowBoost;
+            vFlow = flowEnvelope;
+            vHeight *= 1.0 + flowEnvelope * uFlowAmp;
 
             vec3 pos = position;
             pos.x += aXPos;
@@ -445,9 +730,9 @@
             precision mediump float;
           #endif
           uniform vec3 uColor, uEmissive;
-          uniform float uBaseEmissive;
+          uniform float uBaseEmissive, uFlowAlpha;
           uniform float uFixedTipPx, uMinBottomWidthPx;
-          varying float vGlow, vPulse, vHeight;
+          varying float vGlow, vPulse, vHeight, vFlow;
           varying vec2 vUv;
 
           void main(){
@@ -468,9 +753,12 @@
             float alpha = smoothstep(-px, px, allowedWidth - xFromCenter);
             if (alpha < 0.01) discard;
 
-            float emissiveStrength = uBaseEmissive + vGlow * 0.9 + vPulse * 0.15;
+            float core = pow(1.0 - xFromCenter, 2.2);
+            float flowCore = vFlow * (0.65 + core * 0.85) * (0.4 + uFlowAlpha * 0.6);
+            float emissiveStrength = uBaseEmissive + vGlow * 0.55 + vPulse * 0.1 + flowCore * 1.45;
             vec3 finalColor = uColor + uEmissive * emissiveStrength;
-            gl_FragColor = vec4(finalColor, 0.35 * alpha);
+            float finalAlpha = (0.24 + vGlow * 0.01 + flowCore * 0.16) * alpha;
+            gl_FragColor = vec4(finalColor, finalAlpha);
           }
         `,
         side: THREE.FrontSide,
@@ -489,10 +777,9 @@
     }
 
     const MAX_KEYFRAME_GAIN = 500;
-    const SCREEN_COVERAGE = 0.6;
     function updateGainMultiplier() {
       if (!barMaterial) return;
-      const targetPx = cameraHeight * SCREEN_COVERAGE;
+      const targetPx = cameraHeight * visualState.coverage;
       barMaterial.uniforms.uGainMul.value = targetPx / MAX_KEYFRAME_GAIN;
     }
 
@@ -561,6 +848,15 @@
       u.w1Len.value = wave1.waveLength;
       u.w2Gain.value = wave2.gain;
       u.w2Len.value = wave2.waveLength;
+      flowState.pos += flowState.drift * dt;
+      if (flowState.pos > 1.35) flowState.pos = -0.25;
+      u.uBaseEmissive.value = lightingState.baseEmissive;
+      u.uGainMul.value = (cameraHeight * visualState.coverage) / MAX_KEYFRAME_GAIN;
+      u.uFlowPos.value = flowState.pos;
+      u.uFlowWidth.value = flowState.width;
+      u.uFlowBoost.value = flowState.boost;
+      u.uFlowAmp.value = flowState.amp;
+      u.uFlowAlpha.value = flowState.alpha;
 
       const mouseClipX = (proxyMouseX / cameraWidth) * 2 - 1;
       setMouseNDC(mouseClipX);
@@ -594,135 +890,344 @@
       return tl;
     }
 
-    // --- Text Handling & Presentation Logic ---
-    function splitTextIntoWords(str) {
-      return str
-        .trim()
-        .split(/\s+/)
-        .map((raw, i, arr) => {
-          const spacer = i < arr.length - 1 ? " " : "";
-          const wrap = (core, extraClass = "", punct = "") => {
-            return `
-          <span class="word_wrap ${extraClass}" data-word="${core}${punct}">
-            <span class="word ${extraClass}">
-              ${core}${punct}
-            </span>
-          </span>${spacer}`;
-          };
-          const star = raw.match(/^\*(.+?)\*(\W*)$/);
-          if (star) {
-            const [, coreWord, punct = ""] = star;
-            return wrap(coreWord, "emphasized", punct);
-          }
-          return wrap(raw, "");
-        })
-        .join("");
+    const conversationLaneEl = document.getElementById("conversationLane");
+    const composerFormEl = document.getElementById("composerForm");
+    const composerInputEl = document.getElementById("composerInput");
+    const composerSubmitEl = composerFormEl.querySelector(".composer-submit");
+    let requestCycleTl = null;
+    let completionTl = null;
+    let activeReplyItem = null;
+
+    function applyMotionPreset(presetName, duration = 1.1, ease = "power2.inOut") {
+      const preset = motionPresets[presetName];
+      if (!preset) return;
+      gsap.to(wave1, { ...preset.wave1, duration, ease, overwrite: true });
+      gsap.to(wave2, { ...preset.wave2, duration, ease, overwrite: true });
+      gsap.to(flowState, { ...preset.flow, duration, ease, overwrite: true });
+      gsap.to(lightingState, { baseEmissive: preset.light, duration, ease, overwrite: true });
+      gsap.to(visualState, { coverage: preset.coverage, duration, ease, overwrite: true });
     }
 
-    const textEls = [];
-    function initTextBlocks() {
-      const container = document.getElementById('scene1');
-      const frag = document.createDocumentFragment();
-      sceneTexts.forEach(str => {
-        const div = document.createElement('div');
-        div.className = 'text-block';
-        div.innerHTML = splitTextIntoWords(str);
-        frag.appendChild(div);
-        textEls.push(div);
-      });
-      container.appendChild(frag);
+    function setExperienceState(stateKey) {
+      if (stateKey === "idle") {
+        applyMotionPreset("idle", 1.6, "sine.inOut");
+      } else if (stateKey === "processing") {
+        applyMotionPreset("processing", 0.7, "power2.out");
+      } else if (stateKey === "flowing") {
+        applyMotionPreset("thinking", 0.9, "power2.out");
+      }
     }
 
-    function settleBlur(words) {
-      if (!words || !words.length) return;
-      words.forEach(el => {
-        el.style.filter = "none";
-        el.style.webkitFilter = "none";
-      });
-      requestAnimationFrame(() => words.forEach(el => (el.style.willChange = "auto")));
-    }
-
-    let currentSlide = -1;
-    let isAnimating = false;
-
-    function showSlide(index, forward = true) {
-      if (isAnimating) return;
-      if (index < 0 || index >= textEls.length) return;
-      if (index === currentSlide) return;
-      
-      isAnimating = true;
-
-      const tl = gsap.timeline({
+    function runCompletionBurst() {
+      if (completionTl) {
+        completionTl.kill();
+        completionTl = null;
+      }
+      const alignedPhase = (wave1.currentAngle + wave2.currentAngle) * 0.5;
+      wave1.currentAngle = alignedPhase;
+      wave2.currentAngle = alignedPhase;
+      if (setPhase1) setPhase1(alignedPhase);
+      if (setPhase2) setPhase2(alignedPhase);
+      gsap.killTweensOf([wave1, wave2, flowState, lightingState, visualState]);
+      completionTl = gsap.timeline({
         onComplete: () => {
-          currentSlide = index;
-          isAnimating = false;
+          completionTl = null;
+          setExperienceState("idle");
         }
       });
+      completionTl.to(wave1, {
+        gain: 104,
+        frequency: 0.0,
+        waveLength: 0.0,
+        duration: 0.42,
+        ease: "sine.inOut"
+      }, 0);
+      completionTl.to(wave2, {
+        gain: 104,
+        frequency: 0.0,
+        waveLength: 0.0,
+        duration: 0.42,
+        ease: "sine.inOut"
+      }, 0);
+      completionTl.to(flowState, {
+        pos: 0.5,
+        width: 0.34,
+        boost: 0.0,
+        amp: 0.0,
+        alpha: 0.0,
+        drift: 0.0,
+        duration: 0.42,
+        ease: "sine.inOut"
+      }, 0);
+      completionTl.to(lightingState, {
+        baseEmissive: 0.175,
+        duration: 0.42,
+        ease: "sine.inOut"
+      }, 0);
+      completionTl.to(visualState, {
+        coverage: 0.35,
+        duration: 0.42,
+        ease: "sine.inOut"
+      }, 0);
 
-      const oldWords = currentSlide >= 0 && currentSlide < textEls.length 
-          ? Array.from(textEls[currentSlide].querySelectorAll(".word")) 
-          : [];
-          
-      const newWords = Array.from(textEls[index].querySelectorAll(".word"));
-      const staggerIn = 2.5 / Math.max(newWords.length, 1);
-      const staggerOut = 1.0 / Math.max(oldWords.length, 1);
+      completionTl.to(wave1, {
+        gain: 228,
+        frequency: 0.0,
+        waveLength: 0.0,
+        duration: 0.82,
+        ease: "sine.inOut"
+      }, 0.42);
+      completionTl.to(wave2, {
+        gain: 228,
+        frequency: 0.0,
+        waveLength: 0.0,
+        duration: 0.82,
+        ease: "sine.inOut"
+      }, 0.42);
+      completionTl.to(flowState, {
+        pos: 0.5,
+        width: 0.84,
+        boost: 0.0,
+        amp: 0.0,
+        alpha: 0.0,
+        drift: 0.0,
+        duration: 0.82,
+        ease: "sine.inOut"
+      }, 0.42);
+      completionTl.to(lightingState, {
+        baseEmissive: 0.225,
+        duration: 0.82,
+        ease: "sine.inOut"
+      }, 0.42);
+      completionTl.to(visualState, {
+        coverage: 0.5,
+        duration: 0.82,
+        ease: "sine.inOut"
+      }, 0.42);
 
-      const baseTime = oldWords.length > 0 ? 1.0 : 0;
-
-      if (oldWords.length > 0) {
-        tl.to(oldWords, {
-          opacity: 0, 
-          y: forward ? -10 : 10, 
-          filter: "blur(10px)", 
-          webkitFilter: "blur(10px)",
-          duration: 1.0, 
-          stagger: staggerOut
-        }, 0);
-      }
-
-      tl.set(newWords, {
-        opacity: 0, 
-        y: forward ? 10 : -10, 
-        filter: "blur(10px)", 
-        webkitFilter: "blur(10px)",
-      }, baseTime - 0.01);
-
-      tl.to(newWords, {
-        opacity: 1, 
-        y: 0, 
-        filter: "blur(0px)", 
-        webkitFilter: "blur(0px)",
-        duration: 2.5, 
-        stagger: staggerIn, 
-        onComplete: settleBlur, 
-        onCompleteParams: [newWords]
-      }, baseTime);
+      completionTl.to(wave1, {
+        gain: 260,
+        frequency: 0.0,
+        waveLength: 0.0,
+        duration: 0.24,
+        ease: "sine.out"
+      }, 1.24);
+      completionTl.to(wave2, {
+        gain: 260,
+        frequency: 0.0,
+        waveLength: 0.0,
+        duration: 0.24,
+        ease: "sine.out"
+      }, 1.24);
+      completionTl.to(flowState, {
+        pos: 0.5,
+        width: 0.95,
+        boost: 0.0,
+        amp: 0.0,
+        alpha: 0.0,
+        drift: 0.0,
+        duration: 0.24,
+        ease: "sine.out"
+      }, 1.24);
+      completionTl.to(lightingState, {
+        baseEmissive: 0.26,
+        duration: 0.24,
+        ease: "sine.out"
+      }, 1.24);
+      completionTl.to(visualState, {
+        coverage: 0.58,
+        duration: 0.24,
+        ease: "sine.out"
+      }, 1.24);
+      completionTl.to(wave1, { ...motionPresets.idle.wave1, gain: 42, frequency: 0.0, waveLength: 0.0, duration: 2.8, ease: "power2.inOut" }, 1.52);
+      completionTl.to(wave2, { ...motionPresets.idle.wave2, gain: 42, frequency: 0.0, waveLength: 0.0, duration: 2.8, ease: "power2.inOut" }, 1.52);
+      completionTl.to(flowState, { ...motionPresets.idle.flow, pos: 0.5, duration: 3.0, ease: "power2.inOut" }, 1.52);
+      completionTl.to(lightingState, { baseEmissive: motionPresets.idle.light, duration: 2.9, ease: "power2.inOut" }, 1.52);
+      completionTl.to(visualState, { coverage: motionPresets.idle.coverage, duration: 2.9, ease: "power2.inOut" }, 1.52);
     }
 
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowRight" || e.key === " ") {
-        if (currentSlide < textEls.length - 1) {
-          showSlide(Math.max(currentSlide + 1, 0), true);
-        }
-      } else if (e.key === "ArrowLeft") {
-        if (currentSlide > 0) {
-          showSlide(currentSlide - 1, false);
-        }
-      }
-    });
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
 
-    // --- Scene 1 Timeline ---
-    function buildScene1Timeline() {
-      const tl = gsap.timeline({
-        repeat: -1,
-        onStart() {
-          showScene1();
+    function buildFakeResponse(promptText) {
+      return `Simulated output for "${promptText.trim().replace(/\s+/g, " ")}". The request passes through routing, shifts into a denser thinking rhythm, then resolves into a clean completion rise before easing back to idle.`;
+    }
+
+    function autoSizeComposer() {
+      composerInputEl.style.height = "34px";
+      composerInputEl.style.height = `${Math.min(Math.max(composerInputEl.scrollHeight, 34), 72)}px`;
+    }
+
+    function setConversationText(element, text, withDots = false) {
+      const safeText = escapeHtml(text);
+      element.innerHTML = withDots
+        ? `${safeText}<span class="conversation-dots"><span></span><span></span><span></span></span>`
+        : safeText;
+    }
+
+    function createConversationItem(kind, text, withDots = false) {
+      const item = document.createElement("div");
+      item.className = `conversation-item ${kind}`;
+      setConversationText(item, text, withDots);
+      conversationLaneEl.appendChild(item);
+      return item;
+    }
+
+    function animateConversationEntry(item, options = {}) {
+      const from = options.from ?? { opacity: 0, y: 18, scale: 0.98, filter: "blur(10px)" };
+      const to = options.to ?? { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.2, ease: "power3.out" };
+      gsap.fromTo(item, from, to);
+    }
+
+    function transitionConversationItem(item, kind, text, withDots = false) {
+      gsap.killTweensOf(item);
+      gsap.to(item, {
+        opacity: 0,
+        y: -10,
+        filter: "blur(10px)",
+        duration: 0.55,
+        ease: "power2.in",
+        onComplete: () => {
+          item.className = `conversation-item ${kind}`;
+          setConversationText(item, text, withDots);
+          gsap.fromTo(item, {
+            opacity: 0,
+            y: 10,
+            filter: "blur(10px)"
+          }, {
+            opacity: 1,
+            y: 0,
+            filter: "blur(0px)",
+            duration: 1.25,
+            ease: "power2.out"
+          });
         }
       });
-      tl.add(buildKeyframeTweens(wave1, waveKeyframes1), 0);
-      tl.add(buildKeyframeTweens(wave2, waveKeyframes2), 0);
-      // Removed automatic text show/hide logic
-      return tl;
+    }
+
+    function collapseComposerShell() {
+      composerFormEl.style.pointerEvents = "none";
+      gsap.to(composerFormEl, {
+        opacity: 0,
+        y: 18,
+        scale: 0.96,
+        filter: "blur(16px)",
+        duration: 0.6,
+        ease: "power2.inOut"
+      });
+    }
+
+    function runFakeRequest(promptText) {
+      if (requestCycleTl) {
+        requestCycleTl.kill();
+        requestCycleTl = null;
+      }
+      if (completionTl) {
+        completionTl.kill();
+        completionTl = null;
+      }
+      if (activeReplyItem) {
+        activeReplyItem = null;
+      }
+
+      const userItem = createConversationItem("user", promptText);
+      const statusItem = createConversationItem("status", signalModes.processing.title, true);
+      activeReplyItem = statusItem;
+      animateConversationEntry(userItem, {
+        from: { opacity: 0, y: 28, scale: 1.02, filter: "blur(14px)" },
+        to: { opacity: 1, y: 0, scale: 0.97, filter: "blur(0px)", duration: 1.05, ease: "power3.out" }
+      });
+      animateConversationEntry(statusItem, {
+        from: { opacity: 0, y: 18, scale: 0.98, filter: "blur(12px)" },
+        to: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 1.0, ease: "power3.out", delay: 0.12 }
+      });
+
+      requestCycleTl = gsap.timeline({
+        onComplete: () => {
+          requestCycleTl = null;
+        }
+      });
+
+      composerInputEl.disabled = true;
+      composerSubmitEl.disabled = true;
+      collapseComposerShell();
+
+      requestCycleTl.call(() => setExperienceState("processing"));
+      requestCycleTl.to({}, { duration: 2.6 });
+      requestCycleTl.call(() => {
+        transitionConversationItem(statusItem, "status", signalModes.flowing.title, true);
+      });
+      requestCycleTl.to({}, { duration: 0.6 });
+      requestCycleTl.call(() => {
+        setExperienceState("flowing");
+      });
+      requestCycleTl.to({}, { duration: 3.8 });
+      requestCycleTl.call(() => {
+        runCompletionBurst();
+      });
+      requestCycleTl.to({}, { duration: 0.52 });
+      requestCycleTl.call(() => {
+        transitionConversationItem(statusItem, "assistant", buildFakeResponse(promptText), false);
+      });
+      requestCycleTl.to({}, { duration: 4.2 });
+    }
+
+    function animateHeroIntro() {
+      const promptPanel = document.querySelector(".prompt-panel");
+      const heroItems = document.querySelectorAll(".conversation-lane, .composer-shell");
+
+      gsap.set(heroItems, { opacity: 0, y: 22, filter: "blur(12px)" });
+
+      const tl = gsap.timeline();
+      tl.to(heroItems, {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        duration: 1.1,
+        stagger: 0.08,
+        ease: "power3.out"
+      }, 0.25);
+      tl.to(promptPanel, {
+        y: "-=6",
+        duration: 3.6,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true
+      }, 1.2);
+    }
+
+    function attachFakeRuntimeHandlers() {
+      composerFormEl.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const promptText = composerInputEl.value.trim();
+        if (!promptText) return;
+        runFakeRequest(promptText);
+      });
+
+      composerInputEl.addEventListener("input", autoSizeComposer);
+      composerInputEl.addEventListener("focus", () => {
+        composerFormEl.classList.remove("is-focus-glow");
+        void composerFormEl.offsetWidth;
+        composerFormEl.classList.add("is-focus-glow");
+      });
+      composerFormEl.addEventListener("animationend", (event) => {
+        if (event.animationName === "composerEdgeFlash") {
+          composerFormEl.classList.remove("is-focus-glow");
+        }
+      });
+      composerInputEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          composerFormEl.requestSubmit();
+        }
+      });
     }
 
     function showScene1() {
@@ -867,20 +1372,11 @@
     ro.observe(waveContainer);
 
     const initApp = () => {
-      initTextBlocks();
-      
-      textEls.forEach((block) => {
-        const words = Array.from(block.querySelectorAll(".word"));
-        gsap.set(words, { opacity: 0, y: 10, filter: "blur(10px)", webkitFilter: "blur(10px)" });
-      });
-
-      const mainTimeline = buildScene1Timeline();
-      mainTimeline.play(0);
-
-      // Give the wave background 1 second to fade in before we gently introduce the first slide
-      setTimeout(() => { 
-        showSlide(0, true); 
-      }, 1000);
+      showScene1();
+      attachFakeRuntimeHandlers();
+      applyMotionPreset("idle", 0.01, "none");
+      autoSizeComposer();
+      animateHeroIntro();
     };
 
     if (document.readyState === 'loading') {
@@ -894,4 +1390,5 @@
     });
   </script>
 </body>
+
 </html>

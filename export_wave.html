@@ -348,9 +348,8 @@
     }
 
     function createInstancedMaterial() {
-      // Changed to RED per request!
-      const baseCol = new THREE.Color("#D6001C");
-      const emisCol = new THREE.Color("#D6001C");
+      const baseCol = new THREE.Color("#9FDBFF");
+      const emisCol = new THREE.Color("#E6FDFF");
 
       return new THREE.ShaderMaterial({
         defines: { USE_INSTANCING: '' },
@@ -372,8 +371,8 @@
           uMinBottomWidthPx: { value: 0 },
           uColor: { value: baseCol },
           uEmissive: { value: emisCol },
-          uBaseEmissive: { value: 0.05 },
-          uRotationAngle: { value: THREE.MathUtils.degToRad(23.4) }
+          uBaseEmissive: { value: 0.16 },
+          uRotationAngle: { value: 0.0 }
         },
         vertexShader: `
           attribute float aXPos, aPosNorm, aGroup, aGlow;
